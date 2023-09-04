@@ -1,0 +1,54 @@
+version: "3.8"
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.1
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=changeme1
+      - xpack.security.enabled=true
+      - "ES_JAVA_OPTS=-Xmx512m"
+      - network.publish_host=_eth0_
+      - cluster.name=docker-cluster
+      - network.host=0.0.0.0
+      - xpack.license.self_generated.type=basic
+      - xpack.monitoring.collection.enabled=false
+
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - elk
+      # To use existing network e.g. Network Name is dockerdata_default, then uncomment below line and comment above line
+      # - dockerdata_default
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.9.1
+    container_name: kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=your_username
+      - ELASTICSEARCH_PASSWORD=changeme2
+    ports:
+      - 7601:5601
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+      # To use existing network e.g. Network Name is dockerdata_default, then uncomment below line and comment above line
+      # - dockerdata_default
+
+volumes:
+  elasticsearch_data:
+    driver: local
+
+networks:
+  elk:
+    driver: bridge    
+  # To use existing network e.g. Network Name is dockerdata_default, then uncomment below line and comment above line
+  # dockerdata_default:
+  #   external: true
